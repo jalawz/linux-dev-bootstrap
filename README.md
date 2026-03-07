@@ -1,6 +1,8 @@
-# new_shell
+# linux-dev-bootstrap
 
 Interactive Linux post-install scripts for Arch/Manjaro, Fedora, and Ubuntu/Mint.
+
+Former repository name: `new_shell`.
 
 ## Scripts
 
