@@ -2,6 +2,28 @@
 
 set -e
 
+configurar_git_global() {
+    local git_name="${GIT_USER_NAME:-}"
+    local git_email="${GIT_USER_EMAIL:-}"
+
+    if [ -z "$git_name" ]; then
+        read -rp "Git user.name (deixe vazio para pular): " git_name
+    fi
+
+    if [ -z "$git_email" ]; then
+        read -rp "Git user.email (deixe vazio para pular): " git_email
+    fi
+
+    if [ -n "$git_name" ] && [ -n "$git_email" ]; then
+        git config --global user.name "$git_name"
+        git config --global user.email "$git_email"
+        git config --global init.defaultBranch main
+        echo "✅ Identidade Git global configurada!"
+    else
+        echo "ℹ️ Configuração de Git ignorada."
+    fi
+}
+
 # Verifica se é Fedora
 if ! grep -qi "fedora" /etc/os-release; then
     echo "🚫 Este script é exclusivo para Fedora."
@@ -18,9 +40,7 @@ atualizar_sistema() {
 instalar_pacotes_base() {
     echo "📦 Instalando pacotes base (git, wget, curl, etc)..."
     sudo dnf install -y zsh git wget curl python3-pip dnf-plugins-core powerline-fonts
-    git config --global user.name "Paulo Roberto Menezes"
-    git config --global user.email paulomenezes.web@gmail.com
-    git config --global init.defaultBranch main
+    configurar_git_global
     echo "✅ Pacotes base instalados!"
 }
 

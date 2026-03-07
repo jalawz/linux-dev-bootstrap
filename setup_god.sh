@@ -2,11 +2,33 @@
 
 set -e
 
+configure_git_identity() {
+    local git_name="${GIT_USER_NAME:-}"
+    local git_email="${GIT_USER_EMAIL:-}"
+
+    if [ -z "$git_name" ]; then
+        read -rp "Git user.name (leave empty to skip): " git_name
+    fi
+
+    if [ -z "$git_email" ]; then
+        read -rp "Git user.email (leave empty to skip): " git_email
+    fi
+
+    if [ -n "$git_name" ] && [ -n "$git_email" ]; then
+        git config --global user.name "$git_name"
+        git config --global user.email "$git_email"
+        git config --global init.defaultBranch main
+        echo "✅ Global Git identity configured."
+    else
+        echo "ℹ️ Skipping Git identity configuration."
+    fi
+}
+
 # Detecta a distro
-if grep -qi arch /etc/os-release; then
-    DISTRO="arch"
-elif grep -qi manjaro /etc/os-release; then
+if grep -qi manjaro /etc/os-release; then
     DISTRO="manjaro"
+elif grep -qi arch /etc/os-release; then
+    DISTRO="arch"
 elif grep -qi fedora /etc/os-release; then
     DISTRO="fedora"
 elif grep -qiE 'ubuntu|linuxmint' /etc/os-release; then
@@ -31,9 +53,7 @@ if [[ "$DISTRO" == "arch" || "$DISTRO" == "manjaro" ]]; then
 
     echo "[2/12] Instalando pacotes base..."
     sudo pacman -S --noconfirm git zsh docker wget curl python-pip flatpak
-    git config --global user.name "Paulo Roberto Menezes"
-    git config --global user.email paulomenezes.web@gmail.com
-    git config --global init.defaultBranch main
+    configure_git_identity
     echo "Instalando Brave Browser"
     curl -fsS https://dl.brave.com/install.sh | sh
 
@@ -46,6 +66,7 @@ elif [[ "$DISTRO" == "fedora" ]]; then
 
     echo "[1/12] Instalando pacotes base..."
     sudo dnf install -y zsh git wget curl python3-pip flatpak dnf-plugins-core
+    configure_git_identity
 
     echo "[2/12] Instalando Google Chrome..."
     sudo dnf config-manager --set-enabled google-chrome
@@ -62,9 +83,7 @@ elif [[ "$DISTRO" == "ubuntu" ]]; then
 
     echo "[1/12] Instalando pacotes base..."
     sudo apt install -y zsh git curl wget python3-pip flatpak gnome-software-plugin-flatpak ca-certificates gnupg lsb-release apt-transport-https
-    git config --global user.name "Paulo Roberto Menezes"
-    git config --global user.email paulomenezes.web@gmail.com
-    git config --global init.defaultBranch main
+    configure_git_identity
 
     echo "[2/12] Instalando Google Chrome..."
     wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -95,7 +114,11 @@ if [[ "$DISTRO" == "ubuntu" ]]; then
     sudo apt update
     sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 else
-    sudo $([[ "$DISTRO" == "fedora" ]] && echo dnf || echo pacman) install -y docker
+    if [[ "$DISTRO" == "fedora" ]]; then
+        sudo dnf install -y docker
+    else
+        sudo pacman -S --noconfirm docker
+    fi
 fi
 sudo systemctl enable --now docker
 sudo usermod -aG docker "$USER"
