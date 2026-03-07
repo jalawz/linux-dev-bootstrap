@@ -1,70 +1,107 @@
 # linux-dev-bootstrap
 
-Interactive Linux post-install scripts for Arch/Manjaro, Fedora, and Ubuntu/Mint.
+Modular and interactive Linux developer bootstrap for Arch/Manjaro, Fedora, and Ubuntu/Mint.
 
 Former repository name: `new_shell`.
 
-## Scripts
+## Highlights
 
-- `setup_arch.sh`: interactive setup for Arch Linux and Manjaro.
-- `setup_fedora.sh`: interactive setup for Fedora.
-- `setup_ubuntu.sh`: interactive setup for Ubuntu and Linux Mint.
-- `setup_god.sh`: one-shot cross-distro setup that auto-detects distro and runs all steps.
+- Single entrypoint with interactive menu (`bootstrap.sh`)
+- Modular architecture for easier maintenance
+- Distro adapters (`apt`, `dnf`, `pacman`) behind common functions
+- Language/tool profiles you can install independently
+- Optional non-interactive mode using `--profile`
 
-## What gets installed
+## Project structure
 
-Depending on the selected options/script:
+- `bootstrap.sh`: entrypoint and menu flow
+- `lib/common.sh`: shared helpers (distro detection, sudo check, git identity)
+- `adapters/`: distro-specific package/install implementations
+  - `adapters/ubuntu.sh`
+  - `adapters/fedora.sh`
+  - `adapters/arch.sh`
+- `modules/`: install profiles
+  - `modules/core.sh`
+  - `modules/docker.sh`
+  - `modules/python.sh`
+  - `modules/java.sh`
+  - `modules/node.sh`
+  - `modules/go.sh`
+  - `modules/ruby.sh`
+- `modules/rust.sh`
+- `modules/dotnet.sh`
 
-- Base tools: `zsh`, `git`, `wget`, `curl`, `pip`
-- Browsers: Brave, Google Chrome
-- Editor: Visual Studio Code
-- Shell tools: Oh My Zsh, optional Powerlevel10k
-- Dev tools: Docker, SDKMAN + Java, NVM + Node.js LTS, virtualenvwrapper
-- Desktop tools: Flatpak + Flathub apps, GNOME tweaks/extensions
-- (in `setup_god.sh`) JetBrains Toolbox
+## Profiles
+
+- `core`: core CLI tools (`git`, `curl`, `jq`, `ripgrep`, `fzf`, `zsh`, etc.)
+- `zsh`: Zsh + Oh My Zsh
+- `docker`: Docker Engine + Compose plugin/package
+- `python`: `pip`, `virtualenv`, `virtualenvwrapper`, `pipx`, `poetry`, `ruff`, `black`, `pytest`
+- `java`: SDKMAN + JDK + Maven + Gradle
+- `node`: NVM + Node.js LTS + Corepack + pnpm
+- `go`: Go + `gopls` + `air` + `golangci-lint`
+- `ruby`: Ruby + Bundler + Rails
+- `rust`: rustup + `clippy` + `rustfmt`
+- `dotnet`: .NET SDK (LTS channel by default) via official installer
 
 ## Usage
 
-Run any script with Bash:
+Interactive mode:
 
 ```bash
-bash setup_ubuntu.sh
+bash bootstrap.sh
 ```
 
-Or make it executable first:
+In interactive mode, you can select multiple profiles at once, for example: `1,4,6,10`.
+
+Single profile mode:
 
 ```bash
-chmod +x setup_ubuntu.sh
-./setup_ubuntu.sh
+bash bootstrap.sh --profile python
 ```
 
-## Git identity setup
+Install all profiles:
 
-Scripts no longer hardcode Git identity. During base package installation, you can:
+```bash
+bash bootstrap.sh --profile all
+```
 
-- provide values interactively, or
-- set env vars before running:
+## Optional environment variables
+
+- `GIT_USER_NAME`: sets global git `user.name`
+- `GIT_USER_EMAIL`: sets global git `user.email`
+- `JAVA_SDKMAN_CANDIDATE`: SDKMAN Java candidate (default: `21.0.6-zulu`)
+- `DOTNET_CHANNEL`: .NET install channel (default: `LTS`)
+
+Example:
 
 ```bash
 export GIT_USER_NAME="Your Name"
 export GIT_USER_EMAIL="you@example.com"
-bash setup_fedora.sh
+export JAVA_SDKMAN_CANDIDATE="21.0.6-zulu"
+bash bootstrap.sh --profile java
 ```
-
-If either value is empty, Git global config is skipped.
 
 ## Important notes
 
-- These scripts are intended for personal machine bootstrap.
-- They run privileged package operations (`sudo`) and may change shell defaults (`chsh`).
-- Docker group membership requires logging out/in after installation.
-- Several steps rely on external install scripts (`curl | sh`) and third-party repositories.
-- Menu text is currently in Portuguese.
+- The scripts require `sudo` privileges.
+- Docker group changes require logout/login.
+- Some steps use external installers (for example SDKMAN, NVM, rustup, Oh My Zsh).
+- Use this on personal/dev machines.
+
+## Legacy scripts
+
+The previous distro-specific scripts are still available:
+
+- `setup_arch.sh`
+- `setup_fedora.sh`
+- `setup_ubuntu.sh`
+- `setup_god.sh`
 
 ## Validation
 
 Basic syntax check:
 
 ```bash
-bash -n setup_arch.sh setup_fedora.sh setup_ubuntu.sh setup_god.sh
+bash -n bootstrap.sh lib/common.sh adapters/*.sh modules/*.sh setup_arch.sh setup_fedora.sh setup_ubuntu.sh setup_god.sh
 ```
