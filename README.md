@@ -1,107 +1,110 @@
 # linux-dev-bootstrap
 
-Modular and interactive Linux developer bootstrap for Arch/Manjaro, Fedora, and Ubuntu/Mint.
+Script modular e interativo para preparar ambiente de desenvolvimento no Linux (Arch/Manjaro, Fedora, Ubuntu/Mint).
 
-Former repository name: `new_shell`.
+Objetivo: ajudar quem esta migrando para Linux a instalar ferramentas de dev de forma simples, sem precisar decorar dezenas de comandos.
 
-## Highlights
+## O que este projeto faz
 
-- Single entrypoint with interactive menu (`bootstrap.sh`)
-- Modular architecture for easier maintenance
-- Distro adapters (`apt`, `dnf`, `pacman`) behind common functions
-- Language/tool profiles you can install independently
-- Optional non-interactive mode using `--profile`
+- Detecta automaticamente sua distro
+- Mostra um menu interativo com perfis de instalacao
+- Permite instalar so o que voce quer (ex.: Python + Docker)
+- Tambem funciona em modo direto por parametro (`--profile`)
 
-## Project structure
+## Perfis disponiveis
 
-- `bootstrap.sh`: entrypoint and menu flow
-- `lib/common.sh`: shared helpers (distro detection, sudo check, git identity)
-- `adapters/`: distro-specific package/install implementations
-  - `adapters/ubuntu.sh`
-  - `adapters/fedora.sh`
-  - `adapters/arch.sh`
-- `modules/`: install profiles
-  - `modules/core.sh`
-  - `modules/docker.sh`
-  - `modules/python.sh`
-  - `modules/java.sh`
-  - `modules/node.sh`
-  - `modules/go.sh`
-  - `modules/ruby.sh`
-- `modules/rust.sh`
-- `modules/dotnet.sh`
-
-## Profiles
-
-- `core`: core CLI tools (`git`, `curl`, `jq`, `ripgrep`, `fzf`, `zsh`, etc.)
+- `core`: ferramentas base (`git`, `curl`, `jq`, `ripgrep`, `fzf`, `zsh`, etc.)
 - `zsh`: Zsh + Oh My Zsh
-- `docker`: Docker Engine + Compose plugin/package
+- `docker`: Docker Engine + Compose
 - `python`: `pip`, `virtualenv`, `virtualenvwrapper`, `pipx`, `poetry`, `ruff`, `black`, `pytest`
-- `java`: SDKMAN + JDK + Maven + Gradle
-- `node`: NVM + Node.js LTS + Corepack + pnpm
+- `java`: SDKMAN + Java + Maven + Gradle
+- `node`: NVM + Node LTS + Corepack + pnpm
 - `go`: Go + `gopls` + `air` + `golangci-lint`
 - `ruby`: Ruby + Bundler + Rails
 - `rust`: rustup + `clippy` + `rustfmt`
-- `dotnet`: .NET SDK (LTS channel by default) via official installer
+- `dotnet`: .NET SDK (canal `LTS` por padrao)
 
-## Usage
+## Tutorial rapido (iniciante)
 
-Interactive mode:
+### 1) Clone o repositorio
+
+```bash
+git clone git@github.com:jalawz/linux-dev-bootstrap.git
+cd linux-dev-bootstrap
+```
+
+### 2) Rode em modo interativo
 
 ```bash
 bash bootstrap.sh
 ```
 
-In interactive mode, you can select multiple profiles at once, for example: `1,4,6,10`.
+Pronto. Voce nao precisa passar arquivo nenhum como parametro no fluxo normal.
 
-Single profile mode:
+### 3) Escolha no menu
+
+- Para escolher um perfil: digite um numero (ex.: `4` para Python)
+- Para escolher varios: use virgula (ex.: `1,3,4`)
+- Para instalar tudo: escolha a opcao `11`
+
+### 4) Reinicie sessao quando necessario
+
+Algumas ferramentas exigem logout/login para aplicar permissao ou shell padrao (ex.: Docker group, Zsh).
+
+## Uso por parametro (opcional)
+
+Se quiser pular o menu:
 
 ```bash
 bash bootstrap.sh --profile python
 ```
 
-Install all profiles:
+Outros exemplos:
 
 ```bash
+bash bootstrap.sh --profile docker
+bash bootstrap.sh --profile dotnet
 bash bootstrap.sh --profile all
 ```
 
-## Optional environment variables
+## Variaveis opcionais
 
-- `GIT_USER_NAME`: sets global git `user.name`
-- `GIT_USER_EMAIL`: sets global git `user.email`
-- `JAVA_SDKMAN_CANDIDATE`: SDKMAN Java candidate (default: `21.0.6-zulu`)
-- `DOTNET_CHANNEL`: .NET install channel (default: `LTS`)
+- `GIT_USER_NAME`: define `git config --global user.name`
+- `GIT_USER_EMAIL`: define `git config --global user.email`
+- `JAVA_SDKMAN_CANDIDATE`: versao/candidate do Java no SDKMAN (padrao `21.0.6-zulu`)
+- `DOTNET_CHANNEL`: canal de instalacao do .NET (padrao `LTS`)
 
-Example:
+Exemplo:
 
 ```bash
-export GIT_USER_NAME="Your Name"
-export GIT_USER_EMAIL="you@example.com"
-export JAVA_SDKMAN_CANDIDATE="21.0.6-zulu"
-bash bootstrap.sh --profile java
+export GIT_USER_NAME="Seu Nome"
+export GIT_USER_EMAIL="seu@email.com"
+export DOTNET_CHANNEL="LTS"
+bash bootstrap.sh --profile dotnet
 ```
 
-## Important notes
+## Estrutura do projeto
 
-- The scripts require `sudo` privileges.
-- Docker group changes require logout/login.
-- Some steps use external installers (for example SDKMAN, NVM, rustup, Oh My Zsh).
-- Use this on personal/dev machines.
+- `bootstrap.sh`: entrada principal (menu + execucao)
+- `lib/common.sh`: funcoes compartilhadas
+- `adapters/`: comandos especificos por distro (`apt`, `dnf`, `pacman`)
+- `modules/`: logica de cada perfil (python, java, node, etc.)
 
-## Legacy scripts
+## Dicas para quem esta migrando para Linux
 
-The previous distro-specific scripts are still available:
+- Comece por `core`, depois `docker`, depois sua stack principal
+- Nao precisa instalar tudo de uma vez
+- Prefira ambientes reproduziveis com Docker para projetos
+- Atualize o sistema antes de grandes instalacoes
 
-- `setup_arch.sh`
-- `setup_fedora.sh`
-- `setup_ubuntu.sh`
-- `setup_god.sh`
+## Observacoes importantes
 
-## Validation
+- O script usa `sudo`
+- Alguns passos usam instaladores oficiais externos (SDKMAN, NVM, rustup, Oh My Zsh, dotnet-install)
+- Recomendado para maquina de desenvolvimento pessoal
 
-Basic syntax check:
+## Validacao (desenvolvimento do script)
 
 ```bash
-bash -n bootstrap.sh lib/common.sh adapters/*.sh modules/*.sh setup_arch.sh setup_fedora.sh setup_ubuntu.sh setup_god.sh
+bash -n bootstrap.sh lib/common.sh adapters/*.sh modules/*.sh
 ```
