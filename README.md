@@ -1,19 +1,21 @@
 # linux-dev-bootstrap
 
-Script modular e interativo para preparar ambiente de desenvolvimento no Linux (Arch/Manjaro, Fedora, Ubuntu/Mint).
+Modular and interactive script to prepare a Linux developer environment (Arch/Manjaro, Fedora, Ubuntu/Mint).
 
-Objetivo: ajudar quem esta migrando para Linux a instalar ferramentas de dev de forma simples, sem precisar decorar dezenas de comandos.
+Goal: help people migrating to Linux install dev tools quickly, without memorizing dozens of commands.
 
-## O que este projeto faz
+Portuguese version: `README.pt-BR.md`
 
-- Detecta automaticamente sua distro
-- Mostra um menu interativo com perfis de instalacao
-- Permite instalar so o que voce quer (ex.: Python + Docker)
-- Tambem funciona em modo direto por parametro (`--profile`)
+## What this project does
 
-## Perfis disponiveis
+- Auto-detects your distro
+- Shows an interactive installation menu
+- Lets you install only what you need (for example: Python + Docker)
+- Also supports direct mode with `--profile`
 
-- `core`: ferramentas base (`git`, `curl`, `jq`, `ripgrep`, `fzf`, `zsh`, etc.)
+## Available profiles
+
+- `core`: base tools (`git`, `curl`, `jq`, `ripgrep`, `fzf`, `zsh`, etc.)
 - `zsh`: Zsh + Oh My Zsh
 - `docker`: Docker Engine + Compose
 - `python`: `pip`, `virtualenv`, `virtualenvwrapper`, `pipx`, `poetry`, `ruff`, `black`, `pytest`
@@ -22,44 +24,42 @@ Objetivo: ajudar quem esta migrando para Linux a instalar ferramentas de dev de 
 - `go`: Go + `gopls` + `air` + `golangci-lint`
 - `ruby`: Ruby + Bundler + Rails
 - `rust`: rustup + `clippy` + `rustfmt`
-- `dotnet`: .NET SDK (canal `LTS` por padrao)
+- `dotnet`: .NET SDK (default channel: `LTS`)
 
-## Tutorial rapido (iniciante)
+## Quick start (beginner friendly)
 
-### 1) Clone o repositorio
+### 1) Clone this repository
 
 ```bash
 git clone git@github.com:jalawz/linux-dev-bootstrap.git
 cd linux-dev-bootstrap
 ```
 
-### 2) Rode em modo interativo
+### 2) Run interactive mode
 
 ```bash
 bash bootstrap.sh
 ```
 
-Pronto. Voce nao precisa passar arquivo nenhum como parametro no fluxo normal.
+You do not need to pass any file as a parameter in the normal flow.
 
-### 3) Escolha no menu
+### 3) Pick from the menu
 
-- Para escolher um perfil: digite um numero (ex.: `4` para Python)
-- Para escolher varios: use virgula (ex.: `1,3,4`)
-- Para instalar tudo: escolha a opcao `11`
+- Single profile: type one number (example: `4` for Python)
+- Multiple profiles: comma-separated values (example: `1,3,4`)
+- Install everything: option `11`
 
-### 4) Reinicie sessao quando necessario
+### 4) Re-login when needed
 
-Algumas ferramentas exigem logout/login para aplicar permissao ou shell padrao (ex.: Docker group, Zsh).
+Some tools require logout/login to apply shell or group changes (for example Docker group and Zsh default shell).
 
-## Uso por parametro (opcional)
-
-Se quiser pular o menu:
+## Optional direct mode (without menu)
 
 ```bash
 bash bootstrap.sh --profile python
 ```
 
-Outros exemplos:
+Other examples:
 
 ```bash
 bash bootstrap.sh --profile docker
@@ -67,43 +67,43 @@ bash bootstrap.sh --profile dotnet
 bash bootstrap.sh --profile all
 ```
 
-## Variaveis opcionais
+## Optional environment variables
 
-- `GIT_USER_NAME`: define `git config --global user.name`
-- `GIT_USER_EMAIL`: define `git config --global user.email`
-- `JAVA_SDKMAN_CANDIDATE`: versao/candidate do Java no SDKMAN (padrao `21.0.6-zulu`)
-- `DOTNET_CHANNEL`: canal de instalacao do .NET (padrao `LTS`)
+- `GIT_USER_NAME`: sets `git config --global user.name`
+- `GIT_USER_EMAIL`: sets `git config --global user.email`
+- `JAVA_SDKMAN_CANDIDATE`: Java SDKMAN candidate (default `21.0.6-zulu`)
+- `DOTNET_CHANNEL`: .NET install channel (default `LTS`)
 
-Exemplo:
+Example:
 
 ```bash
-export GIT_USER_NAME="Seu Nome"
-export GIT_USER_EMAIL="seu@email.com"
+export GIT_USER_NAME="Your Name"
+export GIT_USER_EMAIL="you@example.com"
 export DOTNET_CHANNEL="LTS"
 bash bootstrap.sh --profile dotnet
 ```
 
-## Estrutura do projeto
+## Project structure
 
-- `bootstrap.sh`: entrada principal (menu + execucao)
-- `lib/common.sh`: funcoes compartilhadas
-- `adapters/`: comandos especificos por distro (`apt`, `dnf`, `pacman`)
-- `modules/`: logica de cada perfil (python, java, node, etc.)
+- `bootstrap.sh`: main entrypoint (menu + execution)
+- `lib/common.sh`: shared helpers
+- `adapters/`: distro-specific package commands (`apt`, `dnf`, `pacman`)
+- `modules/`: profile-specific installation logic
 
-## Dicas para quem esta migrando para Linux
+## Migration tips (new Linux users)
 
-- Comece por `core`, depois `docker`, depois sua stack principal
-- Nao precisa instalar tudo de uma vez
-- Prefira ambientes reproduziveis com Docker para projetos
-- Atualize o sistema antes de grandes instalacoes
+- Start with `core`, then `docker`, then your main language stack
+- Do not install everything at once unless you really need it
+- Prefer reproducible environments with Docker for projects
+- Keep your system updated before big install sessions
 
-## Observacoes importantes
+## Important notes
 
-- O script usa `sudo`
-- Alguns passos usam instaladores oficiais externos (SDKMAN, NVM, rustup, Oh My Zsh, dotnet-install)
-- Recomendado para maquina de desenvolvimento pessoal
+- The script uses `sudo`
+- Some steps use official external installers (SDKMAN, NVM, rustup, Oh My Zsh, dotnet-install)
+- Recommended for personal development machines
 
-## Validacao (desenvolvimento do script)
+## Validation (project maintenance)
 
 ```bash
 bash -n bootstrap.sh lib/common.sh adapters/*.sh modules/*.sh
