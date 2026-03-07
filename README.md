@@ -1,5 +1,7 @@
 # linux-dev-bootstrap
 
+Language: English | [Português (BR)](README.pt-BR.md)
+
 Modular and interactive script to prepare a Linux developer environment (Arch/Manjaro, Fedora, Ubuntu/Mint).
 
 Goal: help people migrating to Linux install dev tools quickly, without memorizing dozens of commands.
