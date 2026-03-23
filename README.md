@@ -61,6 +61,13 @@ Some tools require logout/login to apply shell or group changes (for example Doc
 bash bootstrap.sh --profile python
 ```
 
+Non-interactive examples:
+
+```bash
+bash bootstrap.sh --non-interactive --profile docker
+bash bootstrap.sh --yes
+```
+
 Other examples:
 
 ```bash
@@ -75,6 +82,7 @@ bash bootstrap.sh --profile all
 - `GIT_USER_EMAIL`: sets `git config --global user.email`
 - `JAVA_SDKMAN_CANDIDATE`: Java SDKMAN candidate (default `21.0.6-zulu`)
 - `DOTNET_CHANNEL`: .NET install channel (default `LTS`)
+- `DEBUG`: set to `1` to enable debug logs
 
 Example:
 
@@ -82,6 +90,7 @@ Example:
 export GIT_USER_NAME="Your Name"
 export GIT_USER_EMAIL="you@example.com"
 export DOTNET_CHANNEL="LTS"
+export DEBUG="1"
 bash bootstrap.sh --profile dotnet
 ```
 

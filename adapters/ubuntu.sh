@@ -41,12 +41,15 @@ install_dotnet_prereqs() {
 }
 
 install_docker_engine() {
+  local version_codename
+
   pkg_install ca-certificates curl gnupg
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   sudo chmod a+r /etc/apt/keyrings/docker.gpg
+  version_codename="$(awk -F= '/^VERSION_CODENAME=/{gsub(/"/, "", $2); print $2}' /etc/os-release)"
   printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu %s stable\n' \
-    "$(dpkg --print-architecture)" "$(. /etc/os-release && printf '%s' "$VERSION_CODENAME")" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+    "$(dpkg --print-architecture)" "$version_codename" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
   pkg_update
   pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo systemctl enable --now docker

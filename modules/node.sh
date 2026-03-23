@@ -1,15 +1,28 @@
 #!/usr/bin/env bash
 
 install_profile_node() {
+  local nvm_installer
+
   log "Installing Node.js profile..."
   install_node_prereqs
 
   if [ ! -d "$HOME/.nvm" ]; then
-    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    nvm_installer="$(mktemp)"
+    if ! curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh -o "$nvm_installer"; then
+      rm -f "$nvm_installer"
+      error "Failed to download NVM installer."
+      return 1
+    fi
+    if ! bash "$nvm_installer"; then
+      rm -f "$nvm_installer"
+      error "Failed to run NVM installer."
+      return 1
+    fi
+    rm -f "$nvm_installer"
   fi
 
   export NVM_DIR="$HOME/.nvm"
-  # shellcheck disable=SC1090
+  # shellcheck disable=SC1090,SC1091
   [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 
   if ! command_exists nvm; then

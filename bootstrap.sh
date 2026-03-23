@@ -1,11 +1,28 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # shellcheck disable=SC1091
 source "$ROOT_DIR/lib/common.sh"
+
+NON_INTERACTIVE=0
+ASSUME_YES=0
+
+on_error() {
+  local exit_code="$?"
+  error "Execution failed (exit=$exit_code) near line ${BASH_LINENO[0]}: ${BASH_COMMAND}"
+  exit "$exit_code"
+}
+
+on_interrupt() {
+  warn "Execution interrupted by user."
+  exit 130
+}
+
+trap on_error ERR
+trap on_interrupt INT TERM
 
 load_adapter() {
   detect_distro
@@ -196,37 +213,88 @@ show_help() {
 Usage:
   ./bootstrap.sh                # interactive menu
   ./bootstrap.sh --profile NAME # run single profile (core,zsh,docker,python,java,node,go,ruby,rust,dotnet,all)
+  ./bootstrap.sh --yes          # non-interactive; runs all profiles
 
 Optional env vars:
   GIT_USER_NAME                # global git user.name
   GIT_USER_EMAIL               # global git user.email
   JAVA_SDKMAN_CANDIDATE        # default: 21.0.6-zulu
   DOTNET_CHANNEL               # default: LTS
+  DEBUG                        # set 1 for debug logs
 EOF
 }
 
+parse_args() {
+  PROFILE=""
+  SHOW_HELP=0
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -h|--help)
+        SHOW_HELP=1
+        shift
+        ;;
+      --profile)
+        if [ -z "${2:-}" ]; then
+          error "Missing profile name for --profile."
+          return 1
+        fi
+        PROFILE="$2"
+        shift 2
+        ;;
+      --non-interactive)
+        NON_INTERACTIVE=1
+        shift
+        ;;
+      --yes)
+        ASSUME_YES=1
+        NON_INTERACTIVE=1
+        shift
+        ;;
+      *)
+        error "Unknown option: $1"
+        return 1
+        ;;
+    esac
+  done
+
+  if [ "$ASSUME_YES" = "1" ] && [ -z "$PROFILE" ]; then
+    PROFILE="all"
+  fi
+
+  return 0
+}
+
 main() {
-  if [ "${1:-}" = "--help" ]; then
+  parse_args "$@" || {
+    show_help
+    exit 1
+  }
+
+  if [ "$SHOW_HELP" = "1" ]; then
     show_help
     exit 0
+  fi
+
+  export NON_INTERACTIVE
+  export ASSUME_YES
+
+  if [ "$NON_INTERACTIVE" = "1" ] && [ -z "$PROFILE" ]; then
+    error "Non-interactive mode requires --profile NAME (or --yes to run all)."
+    show_help
+    exit 1
   fi
 
   load_adapter
   load_modules
 
-  if [ "${1:-}" = "--profile" ]; then
-    if [ -z "${2:-}" ]; then
-      error "Missing profile name."
-      show_help
-      exit 1
-    fi
-    require_sudo
-    run_profile "$2"
-    log "Profile '$2' finished."
+  require_sudo
+
+  if [ -n "$PROFILE" ]; then
+    run_profile "$PROFILE"
+    log "Profile '$PROFILE' finished."
     exit 0
   fi
-
-  require_sudo
 
   while true; do
     print_menu

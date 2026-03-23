@@ -2,22 +2,30 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
 log() {
-  printf '[INFO] %s\n' "$*"
+  printf '[%s] [INFO] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
 
 warn() {
-  printf '[WARN] %s\n' "$*"
+  printf '[%s] [WARN] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
 
 error() {
-  printf '[ERROR] %s\n' "$*" >&2
+  printf '[%s] [ERROR] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2
+}
+
+debug() {
+  if [ "${DEBUG:-0}" = "1" ]; then
+    printf '[%s] [DEBUG] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
+  fi
 }
 
 command_exists() {
   command -v "$1" >/dev/null 2>&1
+}
+
+is_interactive() {
+  [ -t 0 ] && [ -t 1 ]
 }
 
 require_sudo() {
@@ -42,16 +50,24 @@ detect_distro() {
   os_release="$(tr '[:upper:]' '[:lower:]' </etc/os-release)"
 
   if grep -q 'id=manjaro' <<<"$os_release"; then
+    # shellcheck disable=SC2034
     DISTRO_FAMILY="arch"
+    # shellcheck disable=SC2034
     DISTRO_NAME="manjaro"
   elif grep -q 'id=arch' <<<"$os_release"; then
+    # shellcheck disable=SC2034
     DISTRO_FAMILY="arch"
+    # shellcheck disable=SC2034
     DISTRO_NAME="arch"
   elif grep -q 'id=fedora' <<<"$os_release"; then
+    # shellcheck disable=SC2034
     DISTRO_FAMILY="fedora"
+    # shellcheck disable=SC2034
     DISTRO_NAME="fedora"
   elif grep -Eq 'id=ubuntu|id=linuxmint|id_like=.*ubuntu' <<<"$os_release"; then
+    # shellcheck disable=SC2034
     DISTRO_FAMILY="ubuntu"
+    # shellcheck disable=SC2034
     DISTRO_NAME="ubuntu"
   else
     error "Unsupported distro. Supported: Arch/Manjaro, Fedora, Ubuntu/Mint."
@@ -75,11 +91,16 @@ configure_git_identity() {
   local git_name="${GIT_USER_NAME:-}"
   local git_email="${GIT_USER_EMAIL:-}"
 
-  if [ -z "$git_name" ]; then
+  if [ "${NON_INTERACTIVE:-0}" = "1" ] && { [ -z "$git_name" ] || [ -z "$git_email" ]; }; then
+    warn "NON_INTERACTIVE=1 and git identity env vars missing; skipping git identity setup."
+    return 0
+  fi
+
+  if [ -z "$git_name" ] && is_interactive; then
     read -rp "Git user.name (leave empty to skip): " git_name
   fi
 
-  if [ -z "$git_email" ]; then
+  if [ -z "$git_email" ] && is_interactive; then
     read -rp "Git user.email (leave empty to skip): " git_email
   fi
 
